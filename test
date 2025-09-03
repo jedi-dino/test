@@ -1,3 +1,7 @@
+
+"""
+For Kevin TTR-Sam West
+"""
 import argparse
 import os
 from omegaconf import OmegaConf
@@ -25,6 +29,7 @@ import queue
 import time
 import subprocess
 
+print("Welcome")
 
 def fast_check_ffmpeg():
     try:
@@ -59,15 +64,11 @@ class Avatar:
         self.avatar_id = avatar_id
         self.video_path = video_path
         self.bbox_shift = bbox_shift
-
-        # Save outputs in Downloads folder instead of ./results
         downloads_dir = os.path.join(os.path.expanduser("~"), "Downloads")
-
         if args.version == "v15":
             self.base_path = os.path.join(downloads_dir, f"{args.version}_avatars", avatar_id)
-        else:  # v1
+        else:  
             self.base_path = os.path.join(downloads_dir, "avatars", avatar_id)
-
         self.avatar_path = self.base_path
         self.full_imgs_path = f"{self.avatar_path}/full_imgs"
         self.coords_path = f"{self.avatar_path}/coords.pkl"
@@ -90,7 +91,7 @@ class Avatar:
     def init(self):
         if self.preparation:
             if os.path.exists(self.avatar_path):
-                response = input(f"{self.avatar_id} exists, Do you want to re-create it ? (y/n)")
+                response = input(f"{self.avatar_id} alread exists, do you want to re-create it ? (y/n)")
                 if response.lower() == "y":
                     shutil.rmtree(self.avatar_path)
                     print("*********************************")
@@ -118,7 +119,7 @@ class Avatar:
                 self.prepare_material()
         else:
             if not os.path.exists(self.avatar_path):
-                print(f"{self.avatar_id} does not exist, you should set preparation to True")
+                print(f"{self.avatar_id} does not exist set preparation to True and rerun")
                 sys.exit()
 
             with open(self.avatar_info_path, "r") as f:
@@ -149,7 +150,7 @@ class Avatar:
                 self.mask_list_cycle = read_imgs(input_mask_list)
 
     def prepare_material(self):
-        print("preparing data materials ... ...")
+        print("preparing data... ...")
         with open(self.avatar_info_path, "w") as f:
             json.dump(self.avatar_info, f)
 
@@ -164,7 +165,7 @@ class Avatar:
                 shutil.copyfile(f"{self.video_path}/{filename}", f"{self.full_imgs_path}/{filename}")
         input_img_list = sorted(glob.glob(os.path.join(self.full_imgs_path, '*.[jpJP][pnPN]*[gG]')))
 
-        print("extracting landmarks...")
+        print("extracting...")
         coord_list, frame_list = get_landmark_and_bbox(input_img_list, self.bbox_shift)
         input_latent_list = []
         idx = -1
@@ -239,7 +240,7 @@ class Avatar:
     @torch.no_grad()
     def inference(self, audio_path, out_vid_name, fps, skip_save_images):
         os.makedirs(self.avatar_path + '/tmp', exist_ok=True)
-        print("start inference")
+        print("starting")
 
         start_time = time.time()
         whisper_input_features, librosa_length = audio_processor.get_audio_feature(audio_path, weight_dtype=weight_dtype)
@@ -347,8 +348,8 @@ if __name__ == "__main__":
     else:
         fp = FaceParsing()
 
-    # Interactive input instead of YAML
-    avatar_id = input("Enter avatar ID: ").strip()
+  
+    avatar_id = input("Enter avatar name: ").strip()
     video_path = input("Enter path to avatar video or image folder: ").strip()
     audio_files = input("Enter paths to audio files (comma-separated): ").strip().split(",")
 
@@ -365,5 +366,5 @@ if __name__ == "__main__":
         if not os.path.isfile(audio_path):
             print(f"⚠️ Skipping invalid audio file: {audio_path}")
             continue
-        print(f"Running inference with {audio_path}")
+        print(f"Running with {audio_path}")
         avatar.inference(audio_path, f"output_{idx}", args.fps, args.skip_save_images)
